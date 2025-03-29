@@ -70,6 +70,14 @@ public class ClaimAugmentBlockEntity extends BlockEntity implements PolymerObjec
     }
 
     @Override
+    public void onBlockReplaced(BlockPos pos, BlockState oldState) {
+        super.onBlockReplaced(pos, oldState);
+        if (this.world != null) {
+            this.remove();
+        }
+    }
+
+    @Override
     protected void writeNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         if (this.claimPosition != null) {
             tag.putLong(CLAIM_POSITION_KEY, this.claimPosition.asLong());
@@ -84,10 +92,10 @@ public class ClaimAugmentBlockEntity extends BlockEntity implements PolymerObjec
     @Override
     public void readNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         if (tag.contains(CLAIM_POSITION_KEY)) {
-            this.claimPosition = BlockPos.fromLong(tag.getLong(CLAIM_POSITION_KEY));
+            this.claimPosition = BlockPos.fromLong(tag.getLong(CLAIM_POSITION_KEY, 0));
         }
 
-        this.parentPosition = BlockPos.fromLong(tag.getLong(PARENT_POSITION_KEY));
+        this.parentPosition = BlockPos.fromLong(tag.getLong(PARENT_POSITION_KEY, 0));
 
         if (this.augment == null) {
             if (getCachedState().getBlock() instanceof Augment) {

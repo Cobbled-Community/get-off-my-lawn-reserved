@@ -13,6 +13,7 @@ import draylar.goml.block.entity.ClaimAnchorBlockEntity;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -32,6 +33,7 @@ import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 public class UpgradeKitItem extends Item implements PolymerItem {
 
@@ -141,14 +143,10 @@ public class UpgradeKitItem extends Item implements PolymerItem {
         return ActionResult.PASS;
     }
 
-
     @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
-        if(tooltip == null) {
-            return;
-        }
-
-        tooltip.add(Text.translatable(from.getTranslationKey()).append(" -> ").append(Text.translatable(to.getTranslationKey())).formatted(Formatting.GRAY));
+    public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> textConsumer, TooltipType type) {
+        super.appendTooltip(stack, context, displayComponent, textConsumer, type);
+        textConsumer.accept(Text.translatable(from.getTranslationKey()).append(" -> ").append(Text.translatable(to.getTranslationKey())).formatted(Formatting.GRAY));
     }
 
     @Override

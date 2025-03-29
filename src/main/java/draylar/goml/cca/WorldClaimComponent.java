@@ -41,8 +41,8 @@ public class WorldClaimComponent implements ClaimComponent {
         this.claims = RTreeMap.create(new ConfigurationBuilder().star().build(), ClaimBox::rtree3iBox);
         var world = this.world.getRegistryKey().getValue();
 
-        var version = tag.getInt("Version");
-        NbtList nbtList = tag.getList("Claims", NbtType.COMPOUND);
+        var version = tag.getInt("Version", 0);
+        NbtList nbtList = tag.getListOrEmpty("Claims");
 
         if (version == 0) {
             nbtList.forEach(child -> {

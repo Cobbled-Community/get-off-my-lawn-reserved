@@ -254,20 +254,20 @@ public class Claim {
     public static Claim fromNbt(MinecraftServer server, NbtCompound nbt, int version) {
         // Collect UUID of owners
         Set<UUID> ownerUUIDs = new HashSet<>();
-        for (NbtElement ownerUUID : nbt.getList(OWNERS_KEY, NbtElement.INT_ARRAY_TYPE)) {
+        for (NbtElement ownerUUID : nbt.getListOrEmpty(OWNERS_KEY)) {
             ownerUUIDs.add(LegacyNbtHelper.toUuid(ownerUUID));
         }
 
         // Collect UUID of trusted
         Set<UUID> trustedUUIDs = new HashSet<>();
-        for (NbtElement trustedUUID : nbt.getList(TRUSTED_KEY, NbtElement.INT_ARRAY_TYPE)) {
+        for (NbtElement trustedUUID : nbt.getListOrEmpty(TRUSTED_KEY)) {
             trustedUUIDs.add(LegacyNbtHelper.toUuid(trustedUUID));
         }
 
-        var claim = new Claim(server, ownerUUIDs, trustedUUIDs, BlockPos.fromLong(nbt.getLong(POSITION_KEY)));
+        var claim = new Claim(server, ownerUUIDs, trustedUUIDs, BlockPos.fromLong(nbt.getLong(POSITION_KEY, 0)));
 
-        for (var nbtId : nbt.getList(OWNERS_KEY, NbtElement.STRING_TYPE)) {
-            var id = PlayerGroup.Key.of(nbtId.asString());
+        for (var nbtId : nbt.getListOrEmpty(OWNERS_KEY)) {
+            var id = PlayerGroup.Key.of(nbtId.asString().orElse(""));
             if (id != null) {
                 var group = PlayerGroupProvider.getGroup(server, id);
                 if (group != null) {
@@ -276,18 +276,18 @@ public class Claim {
             }
         }
 
-        if (nbt.contains(ICON_KEY, NbtElement.COMPOUND_TYPE)) {
-            claim.icon = ItemStack.fromNbt(server.getRegistryManager(), nbt.getCompound(ICON_KEY)).orElse(ItemStack.EMPTY);
+        if (nbt.contains(ICON_KEY)) {
+            claim.icon = ItemStack.fromNbt(server.getRegistryManager(), nbt.getCompoundOrEmpty(ICON_KEY)).orElse(ItemStack.EMPTY);
         }
 
-        if (nbt.contains(TYPE_KEY, NbtElement.STRING_TYPE)) {
-            var block = Registries.BLOCK.get(Identifier.tryParse(nbt.getString(TYPE_KEY)));
+        if (nbt.contains(TYPE_KEY)) {
+            var block = Registries.BLOCK.get(Identifier.tryParse(nbt.getString(TYPE_KEY, "")));
             if (block instanceof ClaimAnchorBlock anchorBlock) {
                 claim.type = anchorBlock;
             }
         }
 
-        var customData = nbt.getCompound(CUSTOM_DATA_KEY);
+        var customData = nbt.getCompoundOrEmpty(CUSTOM_DATA_KEY);
 
         for (var stringKey : customData.getKeys()) {
             var key = Identifier.tryParse(stringKey);
@@ -301,21 +301,21 @@ public class Claim {
         if (version == 0) {
             claim.claimBox = ClaimBox.EMPTY;
         } else {
-            claim.claimBox = ClaimBox.readNbt(nbt.getCompound(BOX_KEY), 0);
+            claim.claimBox = ClaimBox.readNbt(nbt.getCompoundOrEmpty(BOX_KEY), 0);
         }
 
-        for (var entry : nbt.getList(AUGMENTS_KEY, NbtElement.COMPOUND_TYPE)) {
+        for (var entry : nbt.getListOrEmpty(AUGMENTS_KEY)) {
             var value = (NbtCompound) entry;
-            var pos = LegacyNbtHelper.toBlockPos(value.getCompound("Pos"));
-            var type = GOMLAugments.get(Identifier.tryParse(value.getString("Type")));
+            var pos = LegacyNbtHelper.toBlockPos(value.getCompoundOrEmpty("Pos"));
+            var type = GOMLAugments.get(Identifier.tryParse(value.getString("Type", "")));
 
             if (pos != null && type != null) {
                 claim.augments.put(pos, type);
             }
         }
 
-        for (var string : nbt.getList(TRUSTED_GROUP_KEY, NbtElement.STRING_TYPE)) {
-            claim.trustedGroupKeys.add(PlayerGroup.Key.of(string.asString()));
+        for (var string : nbt.getListOrEmpty(TRUSTED_GROUP_KEY)) {
+            claim.trustedGroupKeys.add(PlayerGroup.Key.of(string.asString().orElse("")));
         }
 
         for (var augment : claim.augments.entrySet()) {

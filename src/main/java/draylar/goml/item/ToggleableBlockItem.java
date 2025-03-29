@@ -3,6 +3,7 @@ package draylar.goml.item;
 import eu.pb4.polymer.core.api.block.PolymerHeadBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
@@ -12,6 +13,7 @@ import net.minecraft.world.World;
 
 import java.util.List;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 
 public class ToggleableBlockItem extends TooltippedBlockItem {
     private final BooleanSupplier isEnabled;
@@ -33,11 +35,11 @@ public class ToggleableBlockItem extends TooltippedBlockItem {
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
+    public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> textConsumer, TooltipType type) {
         if (isEnabled.getAsBoolean()) {
-            super.appendTooltip(stack, context, tooltip, type);
+            super.appendTooltip(stack, context, displayComponent, textConsumer, type);
         } else {
-            tooltip.add(Text.translatable(String.format("text.goml.disabled_augment")).formatted(Formatting.RED, Formatting.BOLD));
+            textConsumer.accept(Text.translatable(String.format("text.goml.disabled_augment")).formatted(Formatting.RED, Formatting.BOLD));
         }
     }
 }

@@ -149,24 +149,17 @@ public class ClaimAugmentBlock extends Block implements Augment, BlockEntityProv
     }
 
     @Override
-    public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
+    public void onStateReplaced(BlockState state, ServerWorld world, BlockPos pos, boolean moved) {
         if (world == null || world.isClient()) {
             return;
         }
 
-        if (newState.getBlock() != state.getBlock()) {
-            ClaimAugmentBlockEntity be = (ClaimAugmentBlockEntity) world.getBlockEntity(pos);
-            be.remove();
-        }
-
-
-        super.onStateReplaced(state, world, pos, newState, moved);
+        super.onStateReplaced(state, world, pos, moved);
     }
 
     @Override
     public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        if (!world.isClient) {
-            ClaimAugmentBlockEntity be = (ClaimAugmentBlockEntity) world.getBlockEntity(pos);
+        if (!world.isClient && world.getBlockEntity(pos) instanceof ClaimAugmentBlockEntity be) {
             be.remove();
         }
 

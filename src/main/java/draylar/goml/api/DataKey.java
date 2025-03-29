@@ -40,7 +40,7 @@ public record DataKey<T>(Identifier key, T defaultValue, Function<T, NbtElement>
         }, (nbt) -> {
             var list = collectionCreator.get();
 
-            if (nbt instanceof AbstractNbtList<?> nbtList)
+            if (nbt instanceof AbstractNbtList nbtList)
             for (var i : nbtList) {
                 if (i != null) {
                     list.add(deserializer.apply(i));
@@ -52,31 +52,31 @@ public record DataKey<T>(Identifier key, T defaultValue, Function<T, NbtElement>
     }
 
     public static DataKey<String> ofString(Identifier key, String defaultValue) {
-        return new DataKey<>(key, defaultValue, (s) -> NbtString.of(s), (nbt) -> nbt instanceof NbtString nbtString ? nbtString.asString() : defaultValue);
+        return new DataKey<>(key, defaultValue, NbtString::of, (nbt) -> nbt instanceof NbtString nbtString ? nbtString.value() : defaultValue);
     }
 
     public static DataKey<Boolean> ofBoolean(Identifier key, boolean defaultValue) {
-        return new DataKey<>(key, defaultValue, (i) -> NbtByte.of(i), (nbt) -> nbt instanceof AbstractNbtNumber nbtNumber ? nbtNumber.byteValue() > 0 : defaultValue);
+        return new DataKey<>(key, defaultValue, NbtByte::of, (nbt) -> nbt instanceof AbstractNbtNumber nbtNumber ? nbtNumber.byteValue() > 0 : defaultValue);
     }
 
     public static DataKey<Integer> ofInt(Identifier key, int defaultValue) {
-        return new DataKey<>(key, defaultValue, (i) -> NbtInt.of(i), (nbt) -> nbt instanceof AbstractNbtNumber nbtNumber ? nbtNumber.intValue() : defaultValue);
+        return new DataKey<>(key, defaultValue, NbtInt::of, (nbt) -> nbt instanceof AbstractNbtNumber nbtNumber ? nbtNumber.intValue() : defaultValue);
     }
 
     public static DataKey<UUID> ofUuid(Identifier key) {
-        return new DataKey<>(key, Util.NIL_UUID, (i) -> LegacyNbtHelper.fromUuid(i), (nbt) -> LegacyNbtHelper.toUuid(nbt));
+        return new DataKey<>(key, Util.NIL_UUID, LegacyNbtHelper::fromUuid, LegacyNbtHelper::toUuid);
     }
 
     public static DataKey<Set<UUID>> ofUuidSet(Identifier key) {
-        return ofCollection(key, HashSet::new, (i) -> LegacyNbtHelper.fromUuid(i), (nbt) -> LegacyNbtHelper.toUuid(nbt));
+        return ofCollection(key, HashSet::new, LegacyNbtHelper::fromUuid, LegacyNbtHelper::toUuid);
     }
 
     public static DataKey<Double> ofDouble(Identifier key, double defaultValue) {
-        return new DataKey<>(key, defaultValue, (i) -> NbtDouble.of(i), (nbt) -> nbt instanceof AbstractNbtNumber nbtNumber ? nbtNumber.doubleValue() : defaultValue);
+        return new DataKey<>(key, defaultValue, NbtDouble::of, (nbt) -> nbt instanceof AbstractNbtNumber nbtNumber ? nbtNumber.doubleValue() : defaultValue);
     }
 
     public static DataKey<BlockPos> ofPos(Identifier key) {
-        return new DataKey<>(key, null, (i) -> LegacyNbtHelper.fromBlockPos(i), (nbt) -> nbt instanceof NbtCompound compound ? LegacyNbtHelper.toBlockPos(compound) : null);
+        return new DataKey<>(key, null, LegacyNbtHelper::fromBlockPos, (nbt) -> nbt instanceof NbtCompound compound ? LegacyNbtHelper.toBlockPos(compound) : null);
     }
 
     @Nullable
@@ -90,7 +90,7 @@ public record DataKey<T>(Identifier key, T defaultValue, Function<T, NbtElement>
 
     public static <T extends Enum<T>> DataKey<T> ofEnum(Identifier key, Class<T> tClass, T defaultValue) {
         return new DataKey<>(key, defaultValue, (i) -> NbtString.of(i.name()), (nbt) -> {
-            var value = nbt instanceof NbtString string ? Enum.valueOf(tClass, string.asString()) : null;
+            var value = nbt instanceof NbtString string ? Enum.valueOf(tClass, string.value()) : null;
             return value != null ? value : defaultValue;
         });
     }

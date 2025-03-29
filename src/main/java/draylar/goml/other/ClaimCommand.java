@@ -1,5 +1,6 @@
 package draylar.goml.other;
 
+import java.net.URI;
 import java.security.Permission;
 
 import com.jamieswhiteshirt.rtree3i.RTreeMap;
@@ -281,8 +282,8 @@ public class ClaimCommand {
                             owners.append(Text.literal((gameProfile.isPresent() ? gameProfile.get().getName() : "<unknown>") + " -> " + uuid.toString())
                                     .setStyle(Style.EMPTY
                                             .withColor(Formatting.GRAY)
-                                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Click to copy")))
-                                            .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, uuid.toString()))
+                                            .withHoverEvent(new HoverEvent.ShowText(Text.literal("Click to copy")))
+                                            .withClickEvent(new ClickEvent.CopyToClipboard( uuid.toString()))
                                     )
                             );
 
@@ -303,8 +304,8 @@ public class ClaimCommand {
                             trusted.append(Text.literal((gameProfile.isPresent() ? gameProfile.get().getName() : "<unknown>") + " -> " + uuid.toString())
                                     .setStyle(Style.EMPTY
                                             .withColor(Formatting.GRAY)
-                                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Click to copy")))
-                                            .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, uuid.toString()))
+                                            .withHoverEvent(new HoverEvent.ShowText(Text.literal("Click to copy")))
+                                            .withClickEvent(new ClickEvent.CopyToClipboard(uuid.toString()))
                                     )
                             );
 
@@ -400,7 +401,7 @@ public class ClaimCommand {
         player.sendMessage(Text.literal("GitHub: ")
                 .append(
                         Text.literal("https://github.com/Patbox/get-off-my-lawn-reserved")
-                                .setStyle(Style.EMPTY.withColor(Formatting.BLUE).withUnderline(true).withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/Patbox/get-off-my-lawn-server-sided")))
+                                .setStyle(Style.EMPTY.withColor(Formatting.BLUE).withUnderline(true).withClickEvent(new ClickEvent.OpenUrl(URI.create("https://github.com/Patbox/get-off-my-lawn-reserved"))))
                 ), false);
 
         return 1;

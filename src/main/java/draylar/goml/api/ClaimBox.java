@@ -62,11 +62,11 @@ public record ClaimBox(com.jamieswhiteshirt.rtree3i.Box rtree3iBox, Box minecraf
     }
 
     public static ClaimBox readNbt(NbtCompound tag, int i) {
-        BlockPos originPos = BlockPos.fromLong(tag.getLong("OriginPos"));
-        var radius = tag.getInt("Radius");
-        var height = tag.contains("Height") ? tag.getInt("Height") : radius;
+        BlockPos originPos = BlockPos.fromLong(tag.getLong("OriginPos", 0));
+        var radius = tag.getInt("Radius", 0);
+        var height = tag.contains("Height") ? tag.getInt("Height", 0) : radius;
         if (radius > 0 && height > 0) {
-            return new ClaimBox(originPos, radius, height, tag.getBoolean("NoShift"));
+            return new ClaimBox(originPos, radius, height, tag.getBoolean("NoShift", false));
         }
         return EMPTY;
     }

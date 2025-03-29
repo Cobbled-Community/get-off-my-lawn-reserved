@@ -46,7 +46,7 @@ public abstract class EntityMixin implements OriginOwner {
     @Inject(method = "readNbt", at = @At("TAIL"))
     private void readGomlNbt(NbtCompound nbt, CallbackInfo ci) {
         if (nbt.contains("goml:origin")) {
-            this.originPos = LegacyNbtHelper.toBlockPos(nbt.getCompound("goml:origin"));
+            this.originPos = LegacyNbtHelper.toBlockPos(nbt.getCompoundOrEmpty("goml:origin"));
         }
     }
 

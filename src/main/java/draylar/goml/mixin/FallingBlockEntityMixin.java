@@ -37,8 +37,8 @@ public abstract class FallingBlockEntityMixin extends Entity implements OriginOw
         return false;
     }
 
-    @Inject(method = "handleFallDamage", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/math/MathHelper;ceil(F)I", ordinal = 0), cancellable = true)
-    private void blockFallDamage(float fallDistance, float damageMultiplier, DamageSource damageSource, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(method = "handleFallDamage", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/math/MathHelper;ceil(D)I", ordinal = 0), cancellable = true)
+    private void blockFallDamage(double fallDistance, float damagePerDistance, DamageSource damageSource, CallbackInfoReturnable<Boolean> cir) {
         if (this.getWorld().isClient) {
             return;
         }

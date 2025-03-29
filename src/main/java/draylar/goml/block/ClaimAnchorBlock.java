@@ -84,23 +84,6 @@ public class ClaimAnchorBlock extends Block implements BlockEntityProvider, Poly
     }
 
     @Override
-    public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-        if (world == null || world.isClient()) {
-            return;
-        }
-        if (newState.getBlock() != state.getBlock()) {
-            ClaimUtils.getClaimsAt(world, pos).forEach(claimedArea -> {
-                if (ClaimUtils.canDestroyClaimBlock(claimedArea, null, pos)) {
-                    claimedArea.getValue().destroy();
-                }
-            });
-        }
-
-
-        super.onStateReplaced(state, world, pos, newState, moved);
-    }
-
-    @Override
     public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
         if (world == null || world.isClient()) {
             return state;

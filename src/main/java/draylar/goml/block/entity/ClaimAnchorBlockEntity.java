@@ -101,13 +101,25 @@ public class ClaimAnchorBlockEntity extends BlockEntity implements PolymerObject
 
     @Override
     public void readNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
-        NbtList positions = tag.getList(AUGMENT_LIST_KEY, NbtType.LONG);
+        NbtList positions = tag.getListOrEmpty(AUGMENT_LIST_KEY);
         positions.forEach(sub -> {
             BlockPos foundPos = BlockPos.fromLong(((NbtLong) sub).longValue());
             this.loadPositions.add(foundPos);
         });
 
         super.readNbt(tag, registryLookup);
+    }
+
+    @Override
+    public void onBlockReplaced(BlockPos pos, BlockState oldState) {
+        super.onBlockReplaced(pos, oldState);
+        if (this.world != null) {
+            ClaimUtils.getClaimsAt(world, pos).forEach(claimedArea -> {
+                if (ClaimUtils.canDestroyClaimBlock(claimedArea, null, pos)) {
+                    claimedArea.getValue().destroy();
+                }
+            });
+        }
     }
 
     public void addChild(BlockPos pos, Augment augment) {
