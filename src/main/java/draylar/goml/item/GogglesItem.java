@@ -23,6 +23,7 @@ import net.minecraft.particle.BlockStateParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.registry.Registry;
@@ -39,8 +40,8 @@ public class GogglesItem extends TrinketItem implements PolymerItem {
     }
 
     @Override
-    public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
-        if (entity instanceof ServerPlayerEntity player && (selected || player.getEquippedStack(EquipmentSlot.OFFHAND) == stack)) {
+    public void inventoryTick(ItemStack stack, ServerWorld world, Entity entity, @Nullable EquipmentSlot slot) {
+        if (entity instanceof ServerPlayerEntity player && slot != null) {
             if (player.age % 70 == 0) {
                 var distance = player.getServer().getPlayerManager().getViewDistance() * 16;
 
@@ -63,34 +64,34 @@ public class GogglesItem extends TrinketItem implements PolymerItem {
             }
         }
     }
-
-    @Override
-    public void tick(ItemStack stack, SlotReference slot, LivingEntity entity) {
-        if (entity instanceof ServerPlayerEntity player) {
-            if (player.age % 70 == 0) {
-                var distance = player.getServer().getPlayerManager().getViewDistance() * 16;
-
-                var world = player.getWorld();
-
-                ClaimUtils.getClaimsInBox(
-                        world,
-                        entity.getBlockPos().add(-distance, -distance, -distance),
-                        entity.getBlockPos().add(distance, distance, distance)).forEach(
-                        claim -> {
-                            var box = claim.getKey().toBox();
-                            var minPos = new BlockPos(box.x1(), Math.max(box.y1(), world.getBottomY()), box.z1());
-                            var maxPos = new BlockPos(box.x2() - 1, Math.min(box.y2() - 1, world.getTopYInclusive()), box.z2() - 1);
-
-                            BlockState state = ClaimUtils.gogglesClaimColor(claim.getValue());
-
-                            WorldParticleUtils.render(player, minPos, maxPos,
-                                    //new DustParticleEffect(new Vec3f(0.8f, 0.8f, 0.8f), 2)
-                                    new BlockStateParticleEffect(ParticleTypes.BLOCK_MARKER, state)
-                            );
-                        });
-            }
-        }
-    }
+// Remove Trinket for now
+//    @Override
+//    public void tick(ItemStack stack, SlotReference slot, LivingEntity entity) {
+//        if (entity instanceof ServerPlayerEntity player) {
+//            if (player.age % 70 == 0) {
+//                var distance = player.getServer().getPlayerManager().getViewDistance() * 16;
+//
+//                var world = player.getWorld();
+//
+//                ClaimUtils.getClaimsInBox(
+//                        world,
+//                        entity.getBlockPos().add(-distance, -distance, -distance),
+//                        entity.getBlockPos().add(distance, distance, distance)).forEach(
+//                        claim -> {
+//                            var box = claim.getKey().toBox();
+//                            var minPos = new BlockPos(box.x1(), Math.max(box.y1(), world.getBottomY()), box.z1());
+//                            var maxPos = new BlockPos(box.x2() - 1, Math.min(box.y2() - 1, world.getTopYInclusive()), box.z2() - 1);
+//
+//                            BlockState state = ClaimUtils.gogglesClaimColor(claim.getValue());
+//
+//                            WorldParticleUtils.render(player, minPos, maxPos,
+//                                    //new DustParticleEffect(new Vec3f(0.8f, 0.8f, 0.8f), 2)
+//                                    new BlockStateParticleEffect(ParticleTypes.BLOCK_MARKER, state)
+//                            );
+//                        });
+//            }
+//        }
+//    }
 
     @Override
     public Item getPolymerItem(ItemStack itemStack, PacketContext context) {
