@@ -46,7 +46,7 @@ public class AdminAugmentGui extends SimpleGui {
                     } else if (a.isRight) {
                         this.claimRadius += a.shift ? 10 : 1;
                     }
-                    g.getSlot(i).getItemStack().set(DataComponentTypes.ITEM_NAME, Text.translatable("text.goml.radius", this.claimRadius).setStyle(Style.EMPTY.withItalic(false)));
+                    g.getSlot(i).getItemStack().set(DataComponentTypes.CUSTOM_NAME, Text.translatable("text.goml.radius", this.claimRadius).setStyle(Style.EMPTY.withItalic(false)));
                 })
         );
         this.addSlot(new GuiElementBuilder(Items.ANDESITE_WALL)
@@ -58,7 +58,7 @@ public class AdminAugmentGui extends SimpleGui {
                     } else if (a.isRight) {
                         this.claimHeight += a.shift ? 10 : 1;
                     }
-                    g.getSlot(i).getItemStack().set(DataComponentTypes.ITEM_NAME, Text.translatable("text.goml.height", this.claimHeight).setStyle(Style.EMPTY.withItalic(false)));
+                    g.getSlot(i).getItemStack().set(DataComponentTypes.CUSTOM_NAME, Text.translatable("text.goml.height", this.claimHeight).setStyle(Style.EMPTY.withItalic(false)));
 
                 })
         );
@@ -67,11 +67,11 @@ public class AdminAugmentGui extends SimpleGui {
                 .setName(Text.translatable("text.goml.apply"))
                 .setCallback((i, a, c, g) -> {
                     PagedGui.playClickSound(this.player);
-                    GetOffMyLawn.CLAIM.get(claim.getWorldInstance(player.server)).remove(this.claim);
+                    GetOffMyLawn.CLAIM.get(claim.getWorldInstance(player.getServer())).remove(this.claim);
                     var oldSize = claim.getClaimBox();
                     this.claimBox = new ClaimBox(this.claimBox.getOrigin(), this.claimRadius, this.claimHeight, this.claimBox.noShift());
                     claim.internal_setClaimBox(this.claimBox);
-                    GetOffMyLawn.CLAIM.get(claim.getWorldInstance(player.server)).add(this.claim);
+                    GetOffMyLawn.CLAIM.get(claim.getWorldInstance(player.getServer())).add(this.claim);
                     claim.internal_updateChunkCount(player.getServer().getWorld(RegistryKey.of(RegistryKeys.WORLD, this.claim.getWorld())));
                     ClaimEvents.CLAIM_RESIZED.invoker().onResizeEvent(claim, oldSize, this.claimBox);
                 })
