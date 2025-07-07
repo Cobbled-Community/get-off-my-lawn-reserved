@@ -16,12 +16,15 @@ import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.AreaEffectCloudEntity;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileEntity;
+import net.minecraft.particle.BlockStateParticleEffect;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -239,7 +242,7 @@ public class ClaimUtils {
             player = playerEntity;
         } else if (attacker instanceof TameableEntity tameableEntity && tameableEntity.getOwner() instanceof PlayerEntity playerEntity) {
             player = playerEntity;
-        } else if (!(entity instanceof PlayerEntity) && source != null && (attacker == null || source == attacker)) {
+        } else if (!(entity instanceof PlayerEntity) && !(GetOffMyLawn.CONFIG.relaxedEntitySourceProtectionCheck && source instanceof LivingEntity) && source != null && (attacker == null || source == attacker)) {
             return hasMatchingClaims(world, entity.getBlockPos(), ((OriginOwner) source).goml$getOriginSafe());
         } else {
             return true;
@@ -518,5 +521,17 @@ public class ClaimUtils {
 
     public static BlockState gogglesClaimColor(Claim claim) {
         return CLAIM_COLORS_BLOCKS[claimColorIndex(claim)];
+    }
+
+    public static void drawClaimInWorld(ServerPlayerEntity player, Claim claim) {
+        var box = claim.getClaimBox().toBox();
+        var minPos = new BlockPos(box.x1(), Math.max(box.y1(), player.getWorld().getBottomY()), box.z1());
+        var maxPos = new BlockPos(box.x2() - 1, Math.min(box.y2() - 1, player.getWorld().getTopYInclusive()), box.z2() - 1);
+
+        BlockState state = ClaimUtils.gogglesClaimColor(claim);
+
+        WorldParticleUtils.render(player, minPos, maxPos,
+                new BlockStateParticleEffect(ParticleTypes.BLOCK_MARKER, state)
+        );
     }
 }

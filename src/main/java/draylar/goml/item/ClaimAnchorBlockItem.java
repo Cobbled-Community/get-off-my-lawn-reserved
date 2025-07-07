@@ -3,12 +3,14 @@ package draylar.goml.item;
 import draylar.goml.GetOffMyLawn;
 import draylar.goml.api.ClaimUtils;
 import draylar.goml.block.ClaimAnchorBlock;
+import draylar.goml.registry.GOMLBlocks;
 import me.lucko.fabric.api.permissions.v0.Options;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 
 public class ClaimAnchorBlockItem extends TooltippedBlockItem {
@@ -46,7 +48,7 @@ public class ClaimAnchorBlockItem extends TooltippedBlockItem {
         var checkBox = ClaimUtils.createClaimBox(pos, radius);
 
         if (!ClaimUtils.isInAdminMode(context.getPlayer())) {
-            var count = ClaimUtils.getClaimsOwnedBy(context.getWorld(), context.getPlayer().getUuid()).count();
+            var count = ClaimUtils.getClaimsOwnedBy(context.getWorld(), Objects.requireNonNull(context.getPlayer()).getUuid()).filter(x -> x.getValue().getType() != GOMLBlocks.ADMIN_CLAIM_ANCHOR.getFirst()).count();
 
             int maxCount;
             var allowedCount = Options.get(context.getPlayer(), "goml.claim_limit");
@@ -105,9 +107,6 @@ public class ClaimAnchorBlockItem extends TooltippedBlockItem {
             return false;
         }
 
-
         return super.canPlace(context, state);
-
-
     }
 }

@@ -44,16 +44,7 @@ public class GogglesItem extends Item implements PolymerItem {
                         entity.getBlockPos().add(-distance, -distance, -distance),
                         entity.getBlockPos().add(distance, distance, distance)).forEach(
                         claim -> {
-                            var box = claim.getKey().toBox();
-                            var minPos = new BlockPos(box.x1(), Math.max(box.y1(), world.getBottomY()), box.z1());
-                            var maxPos = new BlockPos(box.x2() - 1, Math.min(box.y2() - 1, world.getTopYInclusive()), box.z2() - 1);
-
-                            BlockState state = ClaimUtils.gogglesClaimColor(claim.getValue());
-
-                            WorldParticleUtils.render(player, minPos, maxPos,
-                                    //new DustParticleEffect(new Vec3f(0.8f, 0.8f, 0.8f), 2)
-                                    new BlockStateParticleEffect(ParticleTypes.BLOCK_MARKER, state)
-                            );
+                            ClaimUtils.drawClaimInWorld(player, claim.getValue());
                         });
             }
         }

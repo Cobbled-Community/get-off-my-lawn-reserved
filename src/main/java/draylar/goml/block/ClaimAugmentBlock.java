@@ -143,8 +143,6 @@ public class ClaimAugmentBlock extends Block implements Augment, BlockEntityProv
                 return;
             }
         }
-
-
         super.onPlaced(world, pos, state, placer, itemStack);
     }
 

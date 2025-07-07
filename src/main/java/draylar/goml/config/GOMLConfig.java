@@ -43,7 +43,7 @@ public class GOMLConfig {
     public boolean allowClaimOverlappingIfSameOwner = false;
     public boolean allowFakePlayersToModify = false;
     public boolean protectAgainstHostileExplosionsActivatedByTrustedPlayers = false;
-
+    public boolean relaxedEntitySourceProtectionCheck = false;
     public Set<Identifier> dimensionBlacklist = new HashSet<>();
     public Map<Identifier, List<Box>> regionBlacklist = new HashMap<>();
 

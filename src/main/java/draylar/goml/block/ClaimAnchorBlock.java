@@ -78,6 +78,10 @@ public class ClaimAnchorBlock extends Block implements BlockEntityProvider, Poly
 
             ClaimEvents.CLAIM_CREATED.invoker().onEvent(claimInfo);
             claimInfo.internal_enableUpdates();
+
+            if (placer instanceof ServerPlayerEntity player) {
+                ClaimUtils.drawClaimInWorld(player, claimInfo);
+            }
         }
 
         super.onPlaced(world, pos, state, placer, itemStack);

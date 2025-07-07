@@ -201,7 +201,7 @@ public class Claim {
         }
 
         // collect trusted UUIDs into list
-        var trustedGroupsTag = view.getListAppender(TRUSTED_KEY, Codec.STRING);
+        var trustedGroupsTag = view.getListAppender(TRUSTED_GROUP_KEY, Codec.STRING);
         if (this.trustedGroups != null) {
             for (var group : this.trustedGroups) {
                 if (group.canSave()) {
@@ -261,6 +261,10 @@ public class Claim {
 
         var claim = new Claim(server, ownerUUIDs, trustedUUIDs, BlockPos.fromLong(view.getLong(POSITION_KEY, 0)));
 
+        for (var string : view.getTypedListView(TRUSTED_GROUP_KEY, Codec.STRING)) {
+            claim.trustedGroupKeys.add(PlayerGroup.Key.of(string));
+        }
+
         claim.icon = view.read(ICON_KEY, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
         if (!view.getString(TYPE_KEY, "").isEmpty()) {
             var block = Registries.BLOCK.get(Identifier.tryParse(view.getString(TYPE_KEY, "")));
@@ -294,10 +298,6 @@ public class Claim {
             if (pos != null && type != null) {
                 claim.augments.put(pos, type);
             }
-        }
-
-        for (var string : view.getTypedListView(TRUSTED_GROUP_KEY, Codec.STRING)) {
-            claim.trustedGroupKeys.add(PlayerGroup.Key.of(string));
         }
 
         for (var augment : claim.augments.entrySet()) {
