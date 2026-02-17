@@ -5,36 +5,36 @@ import draylar.goml.registry.GOMLTextures;
 import eu.pb4.sgui.api.GuiHelpers;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.AnvilInputGui;
-import net.minecraft.item.Items;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.NameAndId;
+import net.minecraft.world.item.Items;
 
 import static draylar.goml.ui.PagedGui.playClickSound;
 
 public class NamePlayerSelectorGui extends AnvilInputGui {
     private final Runnable regularClose;
-    private final Consumer<GameProfile> playerConsumer;
-    private final Predicate<GameProfile> shouldDisplay;
+    private final Consumer<NameAndId> playerConsumer;
+    private final Predicate<NameAndId> shouldDisplay;
     private boolean ignore = false;
-    private GameProfile selectedPlayer;
+    private NameAndId selectedPlayer;
     private int tick;
     private String currentName;
     private int timer;
 
-    public NamePlayerSelectorGui(ServerPlayerEntity player, Predicate<GameProfile> shouldDisplay, Runnable regularClose, Consumer<GameProfile> playerConsumer) {
+    public NamePlayerSelectorGui(ServerPlayer player, Predicate<NameAndId> shouldDisplay, Runnable regularClose, Consumer<NameAndId> playerConsumer) {
         super(player, false);
         this.regularClose = regularClose;
         this.playerConsumer = playerConsumer;
         this.shouldDisplay = shouldDisplay;
         this.updateIconInvalid();
-        this.setTitle(Text.translatable("text.goml.gui.player_selector.input.title"));
+        this.setTitle(Component.translatable("text.goml.gui.player_selector.input.title"));
         this.setSlot(2, new GuiElementBuilder(Items.STRUCTURE_VOID)
-                .setName(Text.translatable("text.goml.gui.back").formatted(Formatting.RED))
+                .setName(Component.translatable("text.goml.gui.back").withStyle(ChatFormatting.RED))
                 .hideDefaultTooltip()
                 .setCallback((x, y, z) -> {
                     playClickSound(this.player);
@@ -56,8 +56,8 @@ public class NamePlayerSelectorGui extends AnvilInputGui {
 
         if (this.timer-- == 0 && this.currentName != null) {
             this.updateIcon();
-            this.player.getServer().getUserCache().findByNameAsync(this.currentName).thenAccept((profile) -> {
-                this.player.getServer().execute(() -> {
+            CompletableFuture.supplyAsync(() -> this.player.level().getServer().services().nameToIdCache().get(this.currentName)).thenAccept((profile) -> {
+                this.player.level().getServer().execute(() -> {
                     if (profile.isPresent()) {
                         this.selectedPlayer = profile.get();
                         if (this.shouldDisplay.test(profile.get())) {
@@ -94,20 +94,21 @@ public class NamePlayerSelectorGui extends AnvilInputGui {
 
     private void updateIconInvalid() {
         this.setSlot(1, new GuiElementBuilder(Items.PLAYER_HEAD)
-                .setName(Text.translatable("text.goml.gui.player_selector.input.invalid").formatted(Formatting.RED))
-                .setSkullOwner(GOMLTextures.GUI_QUESTION_MARK)
+                .setName(Component.translatable("text.goml.gui.player_selector.input.invalid").withStyle(ChatFormatting.RED))
+                        .hideDefaultTooltip()
+                .setProfileSkinTexture(GOMLTextures.GUI_QUESTION_MARK)
                 .setCallback((x, y, z) -> this.updateBack())
                 .hideDefaultTooltip());
     }
 
     private void updateIcon() {
         var b = new GuiElementBuilder(Items.PLAYER_HEAD)
-                .setName(Text.translatable("text.goml.gui.player_selector.input.select_player", this.selectedPlayer != null ? this.selectedPlayer.getName() : this.currentName).formatted(Formatting.WHITE));
+                .setName(Component.translatable("text.goml.gui.player_selector.input.select_player", this.selectedPlayer != null ? this.selectedPlayer.name() : this.currentName).withStyle(ChatFormatting.WHITE));
 
         if (this.selectedPlayer != null) {
-            b.setSkullOwner(this.selectedPlayer, null);
+            b.setProfile(this.selectedPlayer.id());
         } else {
-            b.setSkullOwner(GOMLTextures.GUI_QUESTION_MARK);
+            b.setProfileSkinTexture(GOMLTextures.GUI_QUESTION_MARK);
         }
 
         this.setSlot(1, b
@@ -126,7 +127,7 @@ public class NamePlayerSelectorGui extends AnvilInputGui {
 
     private void updateBack() {
         if (this.screenHandler != null) {
-            GuiHelpers.sendSlotUpdate(this.player, this.screenHandler.syncId, 2, this.getSlot(2).getItemStackForDisplay(this));
+            GuiHelpers.sendSlotUpdate(this.player, this.screenHandler.containerId, 2, this.getSlot(2).getItemStackForDisplay(this));
         }
     }
 }

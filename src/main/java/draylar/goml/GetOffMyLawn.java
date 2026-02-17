@@ -10,7 +10,7 @@ import draylar.goml.api.GomlProtectionProvider;
 import draylar.goml.cca.ClaimComponent;
 import draylar.goml.cca.WorldClaimComponent;
 import draylar.goml.compat.ArgonautsCompat;
-import draylar.goml.compat.DynmapCompat;
+import draylar.goml.compat.webmap.WebmapCompat;
 import draylar.goml.other.CardboardWarning;
 import draylar.goml.other.ClaimCommand;
 import draylar.goml.config.GOMLConfig;
@@ -26,35 +26,39 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.ChunkSectionPos;
-import net.minecraft.world.chunk.WorldChunk;
+import net.minecraft.core.SectionPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.chunk.LevelChunk;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class GetOffMyLawn implements ModInitializer, WorldComponentInitializer {
-
+    public static final String MOD_ID = "goml";
     public static final ComponentKey<ClaimComponent> CLAIM = ComponentRegistryV3.INSTANCE.getOrCreate(id("claims"), ClaimComponent.class);
-    public static final ItemGroup GROUP = ItemGroup.create(null, -1)
-            .displayName(Text.translatable("itemGroup.goml.group"))
+    public static final CreativeModeTab GROUP = CreativeModeTab.builder(null, -1)
+            .title(Component.translatable("itemGroup.goml.group"))
             .icon(() -> new ItemStack(GOMLBlocks.NETHERED_CLAIM_ANCHOR.getSecond()))
-            .entries((ctx, c) -> {
-                GOMLBlocks.ANCHORS.forEach(c::add);
-                GOMLBlocks.AUGMENTS.forEach(c::add);
-                GOMLItems.BASE_ITEMS.forEach(c::add);
+            .displayItems((ctx, c) -> {
+                GOMLBlocks.ANCHORS.forEach(c::accept);
+                GOMLBlocks.AUGMENTS.forEach(c::accept);
+                GOMLItems.BASE_ITEMS.forEach(c::accept);
             })
             .build();
-    public static final Logger LOGGER = LogManager.getLogger();
+    public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
     public static GOMLConfig CONFIG = new GOMLConfig();
 
+    public static List<Runnable> NEXT_TICK_TASK = new ArrayList<>();
+
     public static Identifier id(String name) {
-        return Identifier.of("goml", name);
+        return Identifier.fromNamespaceAndPath(MOD_ID, name);
     }
 
     @Override
@@ -71,7 +75,7 @@ public class GetOffMyLawn implements ModInitializer, WorldComponentInitializer {
 
         PolymerItemGroupUtils.registerPolymerItemGroup(id("group"), GROUP);
 
-        CommonProtection.register(Identifier.of("goml", "claim_protection"), GomlProtectionProvider.INSTANCE);
+        CommonProtection.register(Identifier.fromNamespaceAndPath(MOD_ID, "claim_protection"), GomlProtectionProvider.INSTANCE);
 
         ServerLifecycleEvents.SERVER_STARTING.register((s) -> {
             CardboardWarning.checkAndAnnounce();
@@ -79,15 +83,20 @@ public class GetOffMyLawn implements ModInitializer, WorldComponentInitializer {
         });
 
         ServerTickEvents.END_WORLD_TICK.register((world) -> CLAIM.get(world).getClaims().values().forEach(x -> x.tick(world)));
+        ServerTickEvents.START_SERVER_TICK.register(server -> {
+            for (var task : NEXT_TICK_TASK) {
+                task.run();
+            }
+            NEXT_TICK_TASK.clear();
+        });
+        ServerLifecycleEvents.SERVER_STOPPED.register(x -> NEXT_TICK_TASK.clear());
 
         VanillaTeamGroups.init();
         if (FabricLoader.getInstance().isModLoaded("argonauts")) {
             ArgonautsCompat.init();
         }
 
-        if (FabricLoader.getInstance().isModLoaded("dynmap")) {
-            ServerLifecycleEvents.SERVER_STARTED.register(DynmapCompat::init);
-        }
+        ServerLifecycleEvents.SERVER_STARTED.register(WebmapCompat::init);
 
         ServerChunkEvents.CHUNK_LOAD.register((world, server) -> GetOffMyLawn.onChunkEvent(world, server, Claim::internal_incrementChunks));
         ServerChunkEvents.CHUNK_UNLOAD.register((world, server) -> GetOffMyLawn.onChunkEvent(world, server, Claim::internal_decrementChunks));
@@ -98,13 +107,13 @@ public class GetOffMyLawn implements ModInitializer, WorldComponentInitializer {
         registry.register(CLAIM, WorldClaimComponent::new);
     }
 
-    private static void onChunkEvent(ServerWorld world, WorldChunk chunk, Consumer<Claim> chunkHandler) {
+    private static void onChunkEvent(ServerLevel world, LevelChunk chunk, Consumer<Claim> chunkHandler) {
         CLAIM.get(world).getClaims().entries().filter(x -> {
-            var minX = ChunkSectionPos.getSectionCoord(x.getKey().toBox().x1());
-            var minZ = ChunkSectionPos.getSectionCoord(x.getKey().toBox().z1());
+            var minX = SectionPos.blockToSectionCoord(x.getKey().toBox().x1());
+            var minZ = SectionPos.blockToSectionCoord(x.getKey().toBox().z1());
 
-            var maxX = ChunkSectionPos.getSectionCoord(x.getKey().toBox().x2());
-            var maxZ = ChunkSectionPos.getSectionCoord(x.getKey().toBox().z2());
+            var maxX = SectionPos.blockToSectionCoord(x.getKey().toBox().x2());
+            var maxZ = SectionPos.blockToSectionCoord(x.getKey().toBox().z2());
 
             return (minX <= chunk.getPos().x && maxX >= chunk.getPos().x && minZ <= chunk.getPos().z && maxZ >= chunk.getPos().z);
         }).forEach(x -> chunkHandler.accept(x.getValue()));

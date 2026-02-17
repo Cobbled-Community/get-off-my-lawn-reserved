@@ -4,13 +4,13 @@ import com.mojang.authlib.GameProfile;
 import draylar.goml.api.group.PlayerGroupProvider;
 import draylar.goml.registry.GOMLTextures;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
-import net.minecraft.item.Items;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.PlayerManager;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Style;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.NameAndId;
+import net.minecraft.server.players.PlayerList;
+import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.*;
@@ -19,17 +19,17 @@ import java.util.function.Predicate;
 
 @ApiStatus.Internal
 public class GenericPlayerSelectionGui extends PagedGui {
-    private final PlayerManager playerManager;
-    private final Predicate<GameProfile> shouldDisplay;
-    private final Consumer<GameProfile> onClick;
+    private final PlayerList playerManager;
+    private final Predicate<NameAndId> shouldDisplay;
+    private final Consumer<NameAndId> onClick;
     private int ticker;
-    private List<GameProfile> cachedPlayers = Collections.emptyList();
+    private List<NameAndId> cachedPlayers = Collections.emptyList();
 
-    public GenericPlayerSelectionGui(ServerPlayerEntity player, Text title, Predicate<GameProfile> shouldDisplay, Consumer<GameProfile> onClick, Runnable postClose) {
+    public GenericPlayerSelectionGui(ServerPlayer player, Component title, Predicate<NameAndId> shouldDisplay, Consumer<NameAndId> onClick, Runnable postClose) {
         super(player, postClose);
         this.shouldDisplay = shouldDisplay;
         this.onClick = onClick;
-        this.playerManager = Objects.requireNonNull(player.getServer()).getPlayerManager();
+        this.playerManager = Objects.requireNonNull(player.level().getServer()).getPlayerList();
         this.setTitle(title);
     }
 
@@ -49,10 +49,10 @@ public class GenericPlayerSelectionGui extends PagedGui {
 
     @Override
     protected void updateDisplay() {
-        List<GameProfile> list = new ArrayList<>();
-        for (var p : this.playerManager.getPlayerList()) {
-            if (this.shouldDisplay.test(p.getGameProfile())) {
-                list.add(p.getGameProfile());
+        List<NameAndId> list = new ArrayList<>();
+        for (var p : this.playerManager.getPlayers()) {
+            if (this.shouldDisplay.test(p.nameAndId())) {
+                list.add(p.nameAndId());
             }
         }
 
@@ -65,7 +65,7 @@ public class GenericPlayerSelectionGui extends PagedGui {
         }
 
 
-        list.sort(Comparator.comparing((player) -> player.getName()));
+        list.sort(Comparator.comparing(NameAndId::name));
         this.cachedPlayers = list;
         super.updateDisplay();
     }
@@ -79,21 +79,22 @@ public class GenericPlayerSelectionGui extends PagedGui {
         if (this.cachedPlayers.size() > id) {
             var player = this.cachedPlayers.get(id);
             var b = new GuiElementBuilder(Items.PLAYER_HEAD)
-                    .setName(Text.literal(player.getName()))
-                    .setSkullOwner(player, null)
+                    .setName(Component.literal(player.name()))
+                    .setProfile(player.id())
+                    .hideDefaultTooltip()
                     .setCallback((x, y, z) -> {
                         playClickSound(this.player);
                         this.onClick.accept(player);
                         this.close(this.closeCallback != null);
                     });
 
-            var x = PlayerGroupProvider.getShared(this.player, player.getId());
+            var x = PlayerGroupProvider.getShared(this.player, player.id());
 
             if (!x.isEmpty()) {
-                b.addLoreLine(Text.translatable("text.goml.gui.shared_groups").formatted(Formatting.GOLD));
+                b.addLoreLine(Component.translatable("text.goml.gui.shared_groups").withStyle(ChatFormatting.GOLD));
 
                 for (var g : x) {
-                    b.addLoreLine(Text.literal("- ").append(g.fullDisplayName()).formatted(Formatting.GRAY));
+                    b.addLoreLine(Component.literal("- ").append(g.fullDisplayName()).withStyle(ChatFormatting.GRAY));
                 }
             }
 
@@ -108,7 +109,7 @@ public class GenericPlayerSelectionGui extends PagedGui {
     protected DisplayElement getNavElement(int id) {
         return switch (id) {
             case 5 -> DisplayElement.of(new GuiElementBuilder(Items.NAME_TAG)
-                    .setName(Text.translatable("text.goml.gui.player_selector.by_name").formatted(Formatting.GREEN))
+                    .setName(Component.translatable("text.goml.gui.player_selector.by_name").withStyle(ChatFormatting.GREEN))
                     .setCallback((x, y, z) -> {
                         playClickSound(this.player);
 
