@@ -28,8 +28,6 @@ To see claim areas, you'll have to craft a *Goggles of (Claim) Revealing*
 
 When this item equipped in the helmet, mainhand or offhand slot, claim outlines become visible.
 
-## [Recipes](recipes.md)
-
 ## Claim configuration:
 To configure your claim, you can interact with the anchor block. A UI will appear that offers several configuration options:
 - The player list can be used to add and remove access of players to your claim
