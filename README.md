@@ -1,9 +1,9 @@
-# Get Off My Lawn ReServed
+# Get Off My Lawn ReServed (Cobbled Edition)
 
 *Get Off My Lawn ReServed* is a take on the popular concept of player claims for Survival/Freebuild Fabric servers. 
 This mod works fully server side (no client mod required!) while being compatible with major Fabric modpacks
 
-This project is a fork [Get Off My Lawn by Draylar](https://github.com/Draylar/get-off-my-lawn), with focus on improving and building on top of the original.
+This project is a fork [Get Off My Lawn ReServed by Patbox](https://github.com/Patbox/get-off-my-lawn-reserved), with focus on balancing the original in SMP settings.
 
 
 # Video Showcase
@@ -16,12 +16,13 @@ This project is a fork [Get Off My Lawn by Draylar](https://github.com/Draylar/g
 
 To get started, you'll have to craft a *Claim Anchor*. Each anchor has a different (configurable by admin) claim radius; after placing one, a box around it will be formed. This box is yours!
 
-* **Makeshift**, default radius of 10
-* **Reinforced**, default radius of 25
-* **Glistening**, default radius of 50
-* **Crystal**, default radius of 75
-* **Emeradic**, default radius of 125
-* **Withered**, default radius of 200
+* **Makeshift**, default radius of 2
+* **Primative** default radius of 4
+* **Reinforced**, default radius of 8
+* **Glistening**, default radius of 16
+* **Emeradic**, default radius of 32
+* **Crystal**, default radius of 64
+* **Nethered**, default radius of 128
 
 To see claim areas, you'll have to craft a *Goggles of (Claim) Revealing*
 
